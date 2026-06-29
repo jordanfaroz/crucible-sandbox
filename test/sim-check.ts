@@ -244,5 +244,52 @@ const w = new World();
   check("gas flash burns out and the chamber goes idle", settledAt >= 0, `settledAt=${settledAt}`);
 }
 
+// ---------------------------------------------------------------------------
+// Part B — Ice freezes adjacent water (a spreading front) and the pool MUST
+// settle to idle afterwards (no freeze<->melt buzzing keeping chunks awake).
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  const fy = w.height - 1;
+  // a stone basin so the water is contained and can actually settle
+  for (let x = 48; x <= 71; x++) w.setMat(x, fy, Mat.Stone);
+  for (let y = fy - 12; y <= fy; y++) { w.setMat(48, y, Mat.Stone); w.setMat(71, y, Mat.Stone); }
+  for (let y = fy - 11; y < fy; y++) for (let x = 49; x < 71; x++) w.setMat(x, y, Mat.Water);
+  for (let x = 58; x < 63; x++) for (let y = fy - 7; y < fy - 4; y++) w.setMat(x, y, Mat.Ice);
+  w.chunks.commit();
+  const ice0 = count(w, Mat.Ice);
+  for (let s = 0; s < 600; s++) w.step();
+  check("ice freezes adjacent water (front grows)", count(w, Mat.Ice) > ice0, `ice ${ice0} -> ${count(w, Mat.Ice)}`);
+  let settledAt = -1;
+  for (let s = 0; s < 4000; s++) { w.step(); if (w.chunks.activeCount() === 0) { settledAt = s; break; } }
+  check("frozen pool settles to idle (no buzzing)", settledAt >= 0, `settledAt=${settledAt}`);
+}
+
+// ---------------------------------------------------------------------------
+// Part B — Sand fuses to glass on lava contact (the "glass crust" payoff).
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  const gfy = w.height - 1;
+  for (let x = 38; x < 62; x++) w.setMat(x, gfy, Mat.Stone);            // floor
+  for (let x = 40; x < 60; x++) for (let y = gfy - 8; y < gfy; y++) w.setMat(x, y, Mat.Lava); // resting pool
+  for (let x = 46; x < 54; x++) for (let y = gfy - 22; y < gfy - 19; y++) w.setMat(x, y, Mat.Sand); // dropped from above
+  w.chunks.commit();
+  for (let s = 0; s < 500; s++) w.step();
+  check("sand fuses to glass on lava contact", count(w, Mat.Glass) > 0, `glass=${count(w, Mat.Glass)}`);
+}
+
+// ---------------------------------------------------------------------------
+// Part B — Burnt fuel leaves ash residue.
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  for (let x = 40; x < 60; x++) for (let y = 60; y < 70; y++) w.setMat(x, y, Mat.Wood);
+  for (let x = 45; x < 55; x++) w.setMat(x, 59, Mat.Fire);
+  w.chunks.commit();
+  for (let s = 0; s < 1500; s++) w.step();
+  check("burnt fuel leaves some ash", count(w, Mat.Ash) > 0, `ash=${count(w, Mat.Ash)}`);
+}
+
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);

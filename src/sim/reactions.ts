@@ -31,6 +31,7 @@ export function applyReactions(w: World, x: number, y: number, i: number): boole
     case Mat.Ember: return reactDecay(w, x, y, i, Mat.Air, 0);
     case Mat.Plant: return reactPlant(w, x, y);
     case Mat.Gunpowder: return reactGunpowder(w, x, y);
+    case Mat.Ice: return reactIce(w, x, y);
     default: {
       const def = MAT(w.material[i]);
       return def.flammable ? tryIgnite(w, x, y, def.igniteChance) : false;
@@ -77,7 +78,8 @@ function reactFire(w: World, x: number, y: number, i: number): boolean {
 
   let life = w.extra[i] - (hasFuel ? 1 : 3); // starves fast without fuel
   if (life <= 0) {
-    w.setMat(x, y, chance(0.5) ? Mat.Smoke : Mat.Air);
+    // Burnt-out flame leaves a little ash residue, otherwise smoke, otherwise air.
+    w.setMat(x, y, chance(0.15) ? Mat.Ash : chance(0.5) ? Mat.Smoke : Mat.Air);
     return true;
   }
   w.extra[i] = life;
@@ -143,6 +145,24 @@ function reactDecay(w: World, x: number, y: number, i: number, into: Mat, _p: nu
   w.extra[i] = life;
   w.touch(x, y);
   return false;
+}
+
+function reactIce(w: World, x: number, y: number): boolean {
+  // Ice is a cold sink: it freezes adjacent water into ice, advancing a slow front
+  // (probabilistic, so it creeps). MELTING is pushed by the heat sources
+  // (fire/lava), so freeze (needs cold contact) and melt (needs hot contact) can
+  // never fight over the same boundary — that's the hysteresis, for free, and it
+  // means the front terminates and the chunk sleeps once the water is gone.
+  let hasWater = false;
+  for (let n = 0; n < 8; n++) {
+    const nx = x + NX[n], ny = y + NY[n];
+    if (w.matAt(nx, ny) === Mat.Water) {
+      hasWater = true;
+      if (chance(CONFIG.phase.waterFreeze)) w.setMat(nx, ny, Mat.Ice);
+    }
+  }
+  if (hasWater) w.touch(x, y); // keep rolling while there's still water to freeze
+  return false; // ice doesn't move
 }
 
 function reactGunpowder(w: World, x: number, y: number): boolean {
