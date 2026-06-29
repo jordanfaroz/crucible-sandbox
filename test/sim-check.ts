@@ -221,5 +221,28 @@ const w = new World();
   check("metal melts to lava under extreme heat", count(w, Mat.Metal) < metal0, `metal ${metal0} -> ${count(w, Mat.Metal)}`);
 }
 
+// ---------------------------------------------------------------------------
+// Part B — Flammable gas flashback. A spark/flame in a gas-filled chamber should
+// ignite the WHOLE connected pocket near-instantly (one flood-fill), then burn
+// out and settle.
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  // sealed stone chamber filled with flammable gas
+  for (let x = 40; x <= 80; x++) { w.setMat(x, 40, Mat.Stone); w.setMat(x, 60, Mat.Stone); }
+  for (let y = 40; y <= 60; y++) { w.setMat(40, y, Mat.Stone); w.setMat(80, y, Mat.Stone); }
+  for (let y = 41; y < 60; y++) for (let x = 41; x < 80; x++) w.setMat(x, y, Mat.FlammableGas);
+  const gas0 = count(w, Mat.FlammableGas);
+  w.setMat(60, 50, Mat.Fire); // ignition source in the middle
+  w.chunks.commit();
+  let flashed = false;
+  for (let s = 0; s < 5; s++) { w.step(); if (count(w, Mat.FlammableGas) < gas0 * 0.2) flashed = true; }
+  check("gas flashes back across the whole pocket near-instantly", flashed,
+    `gas ${gas0} -> ${count(w, Mat.FlammableGas)} within 5 steps`);
+  let settledAt = -1;
+  for (let s = 0; s < 2500; s++) { w.step(); if (w.chunks.activeCount() === 0) { settledAt = s; break; } }
+  check("gas flash burns out and the chamber goes idle", settledAt >= 0, `settledAt=${settledAt}`);
+}
+
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);
