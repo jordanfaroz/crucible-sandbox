@@ -180,7 +180,7 @@ reg(m({
 
 reg(m({
   id: Mat.Ice, name: "Ice", cls: Class.Solid, density: 90,
-  color: [150, 200, 235], jitter: 0.1, heat: -90,
+  color: [140, 185, 215], jitter: 0.08, heat: -90,
 }));
 
 reg(m({

@@ -118,6 +118,7 @@ export class Palette {
     prow.className = "row";
     const presets: [string, PresetName][] = [
       ["Dam", "dam"], ["Oil Pit", "oilpit"], ["Lava Cave", "lavacave"], ["Garden", "garden"],
+      ["Powder Keg", "powderkeg"], ["Circuit", "circuit"], ["Frost", "frost"],
     ];
     for (const [label, name] of presets) prow.appendChild(mkBtn(label, () => this.ctrl.loadPreset(name)));
     pre.appendChild(prow);

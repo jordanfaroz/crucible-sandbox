@@ -3,6 +3,7 @@
 import { World } from "../src/sim/World";
 import { Mat } from "../src/sim/materials";
 import { seed } from "../src/sim/rng";
+import { loadPreset, type PresetName } from "../src/sim/presets";
 
 let failures = 0;
 function check(name: string, cond: boolean, detail = ""): void {
@@ -289,6 +290,28 @@ const w = new World();
   w.chunks.commit();
   for (let s = 0; s < 1500; s++) w.step();
   check("burnt fuel leaves some ash", count(w, Mat.Ash) > 0, `ash=${count(w, Mat.Ash)}`);
+}
+
+// ---------------------------------------------------------------------------
+// Part B — Showcase presets. These are deliberately DYNAMIC scenes (free-surface
+// liquids, trapped gas, growing plants) so they never reach total stasis — the
+// original presets don't either. The invariant that matters for a dynamic scene
+// is that chunking still LOCALISES the work: after the drama plays out, only the
+// active region stays awake, the rest of the world sleeps. (Fully-static painted
+// piles reaching 0 is covered by the explosion / spark / ice / pool checks above.)
+{
+  const total = w.chunks.count;
+  const presets: PresetName[] = ["powderkeg", "circuit", "frost"];
+  for (const name of presets) {
+    loadPreset(w, name);
+    w.chunks.commit();
+    let crashed = false;
+    try { for (let s = 0; s < 4000; s++) w.step(); } catch { crashed = true; }
+    const awake = w.chunks.activeCount();
+    check(`preset "${name}" runs without error`, !crashed);
+    check(`preset "${name}" keeps work localised (most of the world asleep)`,
+      awake < total * 0.2, `awake=${awake}/${total}`);
+  }
 }
 
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);

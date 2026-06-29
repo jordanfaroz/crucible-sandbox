@@ -26,6 +26,27 @@ export function writeColor(
   let r: number, g: number, b: number;
 
   switch (mat) {
+    case Mat.Spark: {
+      // brilliant electric blue-white with a fast flicker — blooms hard
+      const fl = ((tint + frame) & 15) * 3;
+      r = clamp255(170 + fl); g = 235; b = 255;
+      break;
+    }
+    case Mat.FlammableGas: {
+      // dim, slightly translucent green haze (kept under the bloom threshold)
+      const f = 0.7 + (tint / 255) * 0.3;
+      r = clamp255(90 * f); g = clamp255(160 * f); b = clamp255(70 * f);
+      break;
+    }
+    case Mat.Metal: {
+      if (extra > 0) { // charged: electric glow
+        r = clamp255(150 + extra * 2); g = 225; b = 255;
+      } else {
+        const f = 1 + ((tint - 128) / 128) * jit[mat];
+        r = clamp255(baseR[mat] * f); g = clamp255(baseG[mat] * f); b = clamp255(baseB[mat] * f);
+      }
+      break;
+    }
     case Mat.Fire: {
       // blackbody-ish: hotter (more life) = whiter/yellower, cooler = deep red.
       const t = extra > 90 ? 1 : extra / 90;
@@ -58,6 +79,10 @@ export function writeColor(
       break;
     }
     case Mat.Water: {
+      if (extra > 0) { // electrified: a momentary cyan-white charge glow
+        r = clamp255(120 + extra * 2); g = 230; b = 255;
+        break;
+      }
       // faint shimmer so it reads as a moving surface, not blue sand.
       const f = 1 + ((tint - 128) / 128) * jit[mat];
       const sh = (((tint ^ frame) & 7) - 3) * 1.5;
