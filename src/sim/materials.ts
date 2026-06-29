@@ -71,7 +71,9 @@ reg(m({ id: Mat.Air, name: "Air", cls: Class.Air, density: 0, color: [8, 9, 14] 
 
 reg(m({
   id: Mat.Sand, name: "Sand", cls: Class.Powder, density: 200,
-  color: [194, 164, 96], jitter: 0.18, dissolvable: true,
+  // A1: dropped a notch (was [194,164,96]) so bright sand no longer crosses the
+  // bloom threshold — glow stays exclusive to emissive materials.
+  color: [168, 140, 80], jitter: 0.18, dissolvable: true,
 }));
 
 reg(m({

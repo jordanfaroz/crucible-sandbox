@@ -66,6 +66,11 @@ export class Renderer {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h);
     this.composer.setSize(w, h);
+    // A2: render the bloom pass at a fraction of full resolution. Bloom cost
+    // scales with bright-pixel area, so halving its buffers is the cheap lever
+    // (the blur is wide anyway, so the softness is imperceptible).
+    const bs = CONFIG.bloom.resolutionScale;
+    this.bloom.setSize(Math.max(1, Math.round(w * bs)), Math.max(1, Math.round(h * bs)));
 
     // Fit the grid into the window preserving aspect (letterbox), nearest upscale.
     const gridAspect = GRID_W / GRID_H;

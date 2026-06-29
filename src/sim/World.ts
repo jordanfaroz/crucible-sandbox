@@ -103,11 +103,15 @@ export class World {
     this.chunks.markDirty(x, y);
   }
 
+  /** Wipe the world. Resets EVERY parallel array (not just material) and returns
+   *  the chunk system to a clean fully-asleep state — so no stale tint, lifetime,
+   *  frame-stamp, or dirty-rect can leak across a clear / preset load (A3). */
   clear(): void {
     this.material.fill(Mat.Air);
+    this.tint.fill(0);
     this.extra.fill(0);
     this.updatedAt.fill(0);
-    this.chunks.wakeAll();
+    this.chunks.reset();
   }
 
   /** One fixed simulation step. */

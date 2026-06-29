@@ -145,6 +145,17 @@ export class Chunks {
     return n;
   }
 
+  /** Reset to a clean, fully-asleep state — both the current and next dirty-rect
+   *  buffers. Used by World.clear()/preset load so no stale rect or stray active
+   *  chunk survives a reset (the cleared grid is all air, so nothing needs waking;
+   *  any subsequently painted/placed cells re-arm their own chunks). */
+  reset(): void {
+    this.curActive.fill(0);
+    this.curMinX.fill(this.w); this.curMinY.fill(this.h);
+    this.curMaxX.fill(-1); this.curMaxY.fill(-1);
+    this.resetNext();
+  }
+
   /** Wake every chunk fully (used on clear / first frame / global ops). */
   wakeAll(): void {
     for (let cy = 0; cy < this.rows; cy++) {

@@ -23,7 +23,11 @@ export const CONFIG = {
   bloom: {
     strength: 0.9,
     radius: 0.5,
-    threshold: 0.7, // high enough that only emissive materials glow
+    threshold: 0.78, // high enough that only emissive materials glow (A1: was 0.7,
+    // which caught bright tan sand). Raising it also shrinks the bright-pixel area
+    // the bloom pass has to process (A2).
+    resolutionScale: 0.5, // render bloom at half-res — bloom cost scales with
+    // bright-pixel area, not cell count, so this is the lever if a real GPU dips.
   },
   embers: true, // fire emits short-lived rising sparks
 } as const;
