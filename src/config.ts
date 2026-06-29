@@ -49,7 +49,7 @@ export const CONFIG = {
   explosionRadius: 7, // cells
 
   // ---- Electricity (Part B: spark) ----
-  sparkCharge: 12, // charge TTL: a charge wave travels this many cells then dies
+  sparkCharge: 40, // charge TTL: a charge wave travels ~this many cells then dies
 } as const;
 
 export const GRID_W = CONFIG.width;

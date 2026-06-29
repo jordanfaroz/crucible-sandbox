@@ -177,5 +177,49 @@ const w = new World();
   check("world goes idle again after an explosion", settledAt >= 0, `settledAt=${settledAt}`);
 }
 
+// ---------------------------------------------------------------------------
+// Part B — Electricity. A spark injected at one end of a water wire sends a
+// charge sweeping along it; the charge MUST fully dissipate (no infinite
+// propagation / loops) and the wire must return to idle.
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  const wy = 50;
+  // A contained trough so the water wire is stable (open ends would drain forever —
+  // a property of liquids, not the charge code).
+  for (let x = 19; x <= 130; x++) w.setMat(x, wy + 1, Mat.Stone); // floor
+  w.setMat(19, wy, Mat.Stone); w.setMat(130, wy, Mat.Stone);      // end walls
+  for (let x = 20; x < 130; x++) w.setMat(x, wy, Mat.Water);      // the wire
+  w.setMat(21, wy - 1, Mat.Spark); // inject at the left end
+  w.chunks.commit();
+  let maxCharged = 0;
+  for (let s = 0; s < 120; s++) {
+    w.step();
+    let charged = 0;
+    for (let x = 20; x < 130; x++) if (w.extra[w.idx(x, wy)] > 0) charged++;
+    if (charged > maxCharged) maxCharged = charged;
+  }
+  check("charge propagates along a water wire", maxCharged > 5, `peak charged cells=${maxCharged}`);
+  let stillCharged = 0;
+  for (let x = 20; x < 130; x++) if (w.extra[w.idx(x, wy)] > 0) stillCharged++;
+  check("charge fully dissipates (no infinite propagation)", stillCharged === 0, `stillCharged=${stillCharged}`);
+  let settledAt = -1;
+  for (let s = 0; s < 800; s++) { w.step(); if (w.chunks.activeCount() === 0) { settledAt = s; break; } }
+  check("wire goes idle after the charge passes", settledAt >= 0, `settledAt=${settledAt}`);
+}
+
+// ---------------------------------------------------------------------------
+// Part B — Metal melts to lava on lava contact; spark conducts through metal.
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  for (let x = 40; x < 60; x++) for (let y = 60; y < 70; y++) w.setMat(x, y, Mat.Metal);
+  for (let x = 40; x < 60; x++) w.setMat(x, 59, Mat.Lava); // lava sitting on the metal
+  w.chunks.commit();
+  const metal0 = count(w, Mat.Metal);
+  for (let s = 0; s < 600; s++) w.step();
+  check("metal melts to lava under extreme heat", count(w, Mat.Metal) < metal0, `metal ${metal0} -> ${count(w, Mat.Metal)}`);
+}
+
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);

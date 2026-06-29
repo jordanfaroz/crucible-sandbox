@@ -6,6 +6,7 @@ import { Mat, MAT } from "./materials";
 import { chance } from "./rng";
 import { CONFIG } from "../config";
 import { explode, isDetonator } from "./explosions";
+import { chargeStep, sparkStep, flashGas } from "./electricity";
 
 // 8-neighbourhood offsets.
 const NX = [-1, 0, 1, -1, 1, -1, 0, 1];
@@ -13,8 +14,16 @@ const NY = [-1, -1, -1, 0, 0, 1, 1, 1];
 
 /** Returns true if the cell was transformed/consumed (skip its movement). */
 export function applyReactions(w: World, x: number, y: number, i: number): boolean {
-  switch (w.material[i]) {
+  const mat = w.material[i];
+
+  // A charged wire (water/metal carrying charge in `extra`) spreads the charge and
+  // ignites adjacent fuel, then keeps flowing/sitting normally. Cheap: only runs
+  // for the handful of cells actually carrying charge (extra>0 on a conductor).
+  if (w.extra[i] > 0 && (mat === Mat.Water || mat === Mat.Metal)) chargeStep(w, x, y, i);
+
+  switch (mat) {
     case Mat.Fire: return reactFire(w, x, y, i);
+    case Mat.Spark: return sparkStep(w, x, y, i);
     case Mat.Lava: return reactLava(w, x, y);
     case Mat.Acid: return reactAcid(w, x, y);
     case Mat.Steam: return reactSteam(w, x, y, i);
@@ -52,6 +61,8 @@ function reactFire(w: World, x: number, y: number, i: number): boolean {
       if (chance(0.5)) w.setMat(nx, ny, Mat.Steam);
       return true;
     }
+    if (nm === Mat.FlammableGas) { hasFuel = true; flashGas(w, nx, ny); continue; }
+    if (nm === Mat.Ice) { if (chance(CONFIG.phase.iceMelt)) w.setMat(nx, ny, Mat.Water); continue; }
     const def = MAT(nm);
     if (def.flammable) {
       hasFuel = true;
@@ -75,6 +86,7 @@ function reactFire(w: World, x: number, y: number, i: number): boolean {
 }
 
 function reactLava(w: World, x: number, y: number): boolean {
+  const P = CONFIG.phase;
   for (let n = 0; n < 8; n++) {
     const nx = x + NX[n], ny = y + NY[n];
     const nm = w.matAt(nx, ny);
@@ -85,6 +97,11 @@ function reactLava(w: World, x: number, y: number): boolean {
       w.setMat(nx, ny, Mat.Steam);
       return true;
     }
+    // Heat-driven phase changes pushed from the lava (no per-cell temp field).
+    if (nm === Mat.Sand) { if (chance(P.sandToGlass)) w.setMat(nx, ny, Mat.Glass); continue; }
+    if (nm === Mat.Metal) { if (chance(P.metalMelt)) w.setMat(nx, ny, Mat.Lava); continue; }
+    if (nm === Mat.Ice) { if (chance(P.iceMelt)) w.setMat(nx, ny, Mat.Water); continue; }
+    if (nm === Mat.FlammableGas) { flashGas(w, nx, ny); continue; }
     const def = MAT(nm);
     if (def.flammable && chance(def.igniteChance)) w.setMat(nx, ny, Mat.Fire);
   }
