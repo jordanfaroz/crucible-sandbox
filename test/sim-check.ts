@@ -154,5 +154,28 @@ const w = new World();
   check("fire eventually burns out (no runaway)", count(w, Mat.Fire) < 30, `fire=${count(w, Mat.Fire)}`);
 }
 
+// ---------------------------------------------------------------------------
+// Part B — Gunpowder explosions. A spark of fire on a gunpowder pile should
+// detonate (clear a crater + spawn fire), chain through the pile, and the world
+// must return to fully idle once the fire burns out and smoke clears.
+// ---------------------------------------------------------------------------
+{
+  w.clear();
+  const gy = w.height - 30;
+  for (let y = gy; y < gy + 16; y++) for (let x = 40; x < 90; x++) w.setMat(x, y, Mat.Gunpowder);
+  const before = count(w, Mat.Gunpowder);
+  w.setMat(64, gy - 1, Mat.Fire); // light the top
+  w.chunks.commit();
+  let sawFire = false;
+  for (let s = 0; s < 400; s++) { w.step(); if (count(w, Mat.Fire) > 30) sawFire = true; }
+  const after = count(w, Mat.Gunpowder);
+  check("gunpowder detonates and is consumed by the blast", after < before * 0.5, `${before} -> ${after}`);
+  check("explosion produces a fireball (chain)", sawFire);
+  // run out the fire + smoke and confirm the world goes idle again
+  let settledAt = -1;
+  for (let s = 0; s < 3000; s++) { w.step(); if (w.chunks.activeCount() === 0) { settledAt = s; break; } }
+  check("world goes idle again after an explosion", settledAt >= 0, `settledAt=${settledAt}`);
+}
+
 console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);

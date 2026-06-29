@@ -5,6 +5,7 @@ import type { World } from "./World";
 import { Mat, MAT } from "./materials";
 import { chance } from "./rng";
 import { CONFIG } from "../config";
+import { explode, isDetonator } from "./explosions";
 
 // 8-neighbourhood offsets.
 const NX = [-1, 0, 1, -1, 1, -1, 0, 1];
@@ -20,6 +21,7 @@ export function applyReactions(w: World, x: number, y: number, i: number): boole
     case Mat.Smoke: return reactDecay(w, x, y, i, Mat.Air, 0);
     case Mat.Ember: return reactDecay(w, x, y, i, Mat.Air, 0);
     case Mat.Plant: return reactPlant(w, x, y);
+    case Mat.Gunpowder: return reactGunpowder(w, x, y);
     default: {
       const def = MAT(w.material[i]);
       return def.flammable ? tryIgnite(w, x, y, def.igniteChance) : false;
@@ -124,6 +126,18 @@ function reactDecay(w: World, x: number, y: number, i: number, into: Mat, _p: nu
   w.extra[i] = life;
   w.touch(x, y);
   return false;
+}
+
+function reactGunpowder(w: World, x: number, y: number): boolean {
+  // Detonate on contact with any detonator (fire/lava/ember/spark). The blast
+  // spawns more fire, so neighbouring gunpowder goes off next frame -> cascade.
+  for (let n = 0; n < 8; n++) {
+    if (isDetonator(w.matAt(x + NX[n], y + NY[n]))) {
+      explode(w, x, y);
+      return true;
+    }
+  }
+  return false; // otherwise it's just a powder — falls and piles
 }
 
 function reactPlant(w: World, x: number, y: number): boolean {
