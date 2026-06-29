@@ -30,6 +30,26 @@ export const CONFIG = {
     // bright-pixel area, not cell count, so this is the lever if a real GPU dips.
   },
   embers: true, // fire emits short-lived rising sparks
+
+  // ---- Heat-driven phase changes (Part B) ----
+  // We deliberately do NOT keep a per-cell temperature field. A pull-based field
+  // forces an 8-neighbour scan on EVERY active cell every frame — it ~doubled the
+  // worst-case step cost in the bench (15->26ms) for no behavioural gain, since
+  // every mechanic here is contact-driven. Instead the heat SOURCES (fire/lava/ice)
+  // push phase changes onto neighbours they already scan, so bulk sand/water pay
+  // nothing and a settled/asleep source pushes nothing (settle-to-zero preserved).
+  phase: {
+    sandToGlass: 0.06, // chance/frame a sand cell touching lava fuses to glass
+    metalMelt: 0.02, // chance/frame a metal cell touching lava melts to lava
+    iceMelt: 0.12, // chance/frame an ice cell touching fire/lava melts to water
+    waterFreeze: 0.10, // chance/frame a water cell touching ice freezes (slow front)
+  },
+
+  // ---- Explosions (Part B: gunpowder) ----
+  explosionRadius: 7, // cells
+
+  // ---- Electricity (Part B: spark) ----
+  sparkCharge: 12, // charge TTL: a charge wave travels this many cells then dies
 } as const;
 
 export const GRID_W = CONFIG.width;

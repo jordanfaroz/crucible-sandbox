@@ -27,6 +27,12 @@ export const enum Mat {
   Salt = 12,
   Gunpowder = 13,
   Ember = 14, // a brightly glowing spark, short life, rises
+  Spark = 15, // electricity injector: charges conductors, ignites fuel, short life
+  FlammableGas = 16, // rises, pools under ceilings, flashes back when ignited
+  Metal = 17, // static, conducts electricity, melts to lava at extreme heat
+  Ice = 18, // cold emitter: melts to water when heated, freezes adjacent water
+  Glass = 19, // formed when sand fuses on extreme heat; inert, insulating
+  Ash = 20, // light powder left behind by burnt fuel
 }
 
 export interface Material {
@@ -43,6 +49,11 @@ export interface Material {
   // lifetime range (frames) for transient materials (fire/smoke/steam/ember)
   lifeMin: number;
   lifeMax: number;
+  // Heat the material radiates into the temperature field: positive = hot source
+  // (fire/lava/ember), negative = cold sink (ice), 0 = inert. See temperature.ts.
+  heat: number;
+  // Electricity conducts through this material (water, metal, gas, gunpowder).
+  conductive: boolean;
   // optional UI hint
   hidden?: boolean;
 }
@@ -58,6 +69,8 @@ function m(p: Partial<Material> & { id: Mat; name: string; cls: Class }): Materi
     dissolvable: false,
     lifeMin: 0,
     lifeMax: 0,
+    heat: 0,
+    conductive: false,
     ...p,
   };
 }
@@ -78,7 +91,7 @@ reg(m({
 
 reg(m({
   id: Mat.Water, name: "Water", cls: Class.Liquid, density: 100,
-  color: [42, 92, 168], jitter: 0.12,
+  color: [42, 92, 168], jitter: 0.12, conductive: true,
 }));
 
 reg(m({
@@ -100,7 +113,7 @@ reg(m({
 reg(m({
   id: Mat.Fire, name: "Fire", cls: Class.Energy, density: 2,
   color: [255, 150, 40], jitter: 0.2, emissive: true,
-  lifeMin: 40, lifeMax: 110,
+  lifeMin: 40, lifeMax: 110, heat: 80,
 }));
 
 reg(m({
@@ -116,7 +129,7 @@ reg(m({
 reg(m({
   id: Mat.Lava, name: "Lava", cls: Class.Liquid, density: 130,
   color: [255, 90, 20], jitter: 0.18, emissive: true,
-  igniteChance: 0.06,
+  igniteChance: 0.06, heat: 90,
 }));
 
 reg(m({
@@ -138,13 +151,46 @@ reg(m({
 reg(m({
   id: Mat.Gunpowder, name: "Gunpowder", cls: Class.Powder, density: 170,
   color: [58, 58, 64], jitter: 0.14, flammable: true, igniteChance: 0.5,
-  dissolvable: true,
+  dissolvable: true, conductive: true,
 }));
 
 reg(m({
   id: Mat.Ember, name: "Ember", cls: Class.Energy, density: 1,
   color: [255, 220, 150], jitter: 0.15, emissive: true,
-  lifeMin: 16, lifeMax: 40, hidden: true,
+  lifeMin: 16, lifeMax: 40, heat: 35, hidden: true,
+}));
+
+reg(m({
+  id: Mat.Spark, name: "Spark", cls: Class.Energy, density: 1,
+  color: [180, 230, 255], jitter: 0.2, emissive: true,
+  lifeMin: 2, lifeMax: 4, conductive: true,
+}));
+
+reg(m({
+  id: Mat.FlammableGas, name: "Gas", cls: Class.Gas, density: 1,
+  // lighter than smoke/steam so it out-rises them and pools at the top
+  color: [120, 180, 90], jitter: 0.22, flammable: true, igniteChance: 0.9,
+  conductive: true,
+}));
+
+reg(m({
+  id: Mat.Metal, name: "Metal", cls: Class.Solid, density: 255,
+  color: [122, 132, 150], jitter: 0.1, conductive: true,
+}));
+
+reg(m({
+  id: Mat.Ice, name: "Ice", cls: Class.Solid, density: 90,
+  color: [150, 200, 235], jitter: 0.1, heat: -90,
+}));
+
+reg(m({
+  id: Mat.Glass, name: "Glass", cls: Class.Solid, density: 250,
+  color: [150, 180, 200], jitter: 0.06,
+}));
+
+reg(m({
+  id: Mat.Ash, name: "Ash", cls: Class.Powder, density: 120,
+  color: [86, 84, 86], jitter: 0.22,
 }));
 
 export const MAT = (id: Mat): Material => MATERIALS[id];
@@ -152,5 +198,6 @@ export const MAT = (id: Mat): Material => MATERIALS[id];
 // Materials shown in the palette, in order.
 export const PALETTE_ORDER: Mat[] = [
   Mat.Sand, Mat.Water, Mat.Stone, Mat.Wood, Mat.Oil, Mat.Fire,
-  Mat.Lava, Mat.Acid, Mat.Plant, Mat.Smoke, Mat.Steam, Mat.Salt, Mat.Gunpowder,
+  Mat.Lava, Mat.Acid, Mat.Plant, Mat.Smoke, Mat.Steam, Mat.Salt,
+  Mat.Gunpowder, Mat.Spark, Mat.FlammableGas, Mat.Metal, Mat.Ice, Mat.Glass,
 ];

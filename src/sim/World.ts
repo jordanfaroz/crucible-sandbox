@@ -12,7 +12,7 @@ export class World {
   // Parallel flat arrays — never per-cell objects.
   readonly material = new Uint8Array(CELL_COUNT); // 0 = Air
   readonly tint = new Uint8Array(CELL_COUNT); // per-cell colour jitter seed
-  readonly extra = new Uint8Array(CELL_COUNT); // scratch: fire/smoke/steam lifetime
+  readonly extra = new Uint8Array(CELL_COUNT); // scratch: lifetime, or charge on conductors
   readonly updatedAt = new Uint32Array(CELL_COUNT); // frame-stamp guard
 
   readonly chunks = new Chunks(GRID_W, GRID_H, CONFIG.chunkSize);
