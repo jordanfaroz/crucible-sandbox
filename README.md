@@ -3,7 +3,10 @@
 A Noita-style cellular-automaton sandbox. Every pixel is a simulated particle:
 sand piles, water flows and levels, oil floats and ignites, fire races through
 fuel, lava hardens water to stone, acid eats through walls, plants grow along
-water. Built to run at a **locked 60fps with hundreds of thousands of active
+water. Gunpowder chain-explodes, flammable gas flashes back when sparked,
+electricity conducts through water and metal (and sets off gas/powder), metal
+melts in lava, ice freezes water and melts near heat, and sand fuses to glass on
+lava. Built to run at a **locked 60fps with hundreds of thousands of active
 cells** and drop to **near-zero cost the instant the world settles**.
 
 ## Run it
@@ -27,7 +30,8 @@ npm run preview
 - **Alt-click** — eyedropper (pick the material under the cursor)
 - **Mouse wheel** — brush size
 - Palette to pick materials; **Pause / Step / Clear**, a **Bloom** toggle, and
-  preset scenes (**Dam**, **Oil Pit**, **Lava Cave**, **Garden**).
+  preset scenes (**Dam**, **Oil Pit**, **Lava Cave**, **Garden**, **Powder Keg**,
+  **Circuit**, **Frost**).
 
 The HUD (bottom-left) shows fps and how many chunks are awake — paint a pile,
 let it settle, and watch the awake-chunk count fall to **0**.
@@ -52,6 +56,16 @@ let it settle, and watch the awake-chunk count fall to **0**.
 - **Materials are data** (`src/sim/materials.ts`) and **interactions are rules**
   (`src/sim/reactions.ts`). Adding a material is a single table entry plus maybe
   one reaction.
+- **Heat is contact-based, pushed from the source** — there is deliberately no
+  per-cell temperature field. A pull-based field forces an 8-neighbour scan on
+  *every* active cell every frame (it ~doubled the worst-case step cost in the
+  bench) for no behavioural gain, since every mechanic here is contact-driven.
+  Instead the heat sources (fire/lava/ice) push phase changes onto neighbours they
+  already scan — so bulk sand/water pay nothing and a settled source pushes
+  nothing, keeping the settle-to-zero invariant intact. (`src/sim/explosions.ts`
+  and `src/sim/electricity.ts` hold the explosion and charge-propagation logic;
+  the charge is a strictly-decreasing TTL carried in a conductor's `extra` byte,
+  so a charge wave is guaranteed to sweep once and dissipate.)
 
 ## Project layout
 
@@ -79,7 +93,8 @@ test/
 ## Tests / benchmark
 
 ```bash
-npx tsx test/sim-check.ts   # 14 correctness checks (teleport, conservation, idle, reactions)
+npx tsx test/sim-check.ts   # 34 correctness checks (teleport, conservation, idle,
+                            # reactions, explosions, conduction, freezing, glass)
 npx tsx test/bench.ts       # ms/step under heavy churn vs. settled
 ```
 
