@@ -51,9 +51,8 @@ const CSS = `
   box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 6px rgba(0,0,0,0.4); }
 #help .mat .txt b { color: #e7ecf5; }
 #help .mat .txt { color: #a6b0c2; }
-#help ul.try { margin: 0; padding-left: 18px; }
-#help ul.try li { margin: 7px 0; color: #aeb8c9; }
-#help ul.try li b { color: #dce3ef; }
+#help .try-lead { margin: 16px 0 0; color: #aeb8c9; }
+#help .try-lead b { color: #dce3ef; }
 #help .shot { margin: 10px 0 14px; border-radius: 8px; overflow: hidden; background: #0d111b; }
 #help .shot .ph { aspect-ratio: 16 / 9; border: 1px dashed #33405a; border-radius: 8px;
   display: flex; align-items: center; justify-content: center; text-align: center;
@@ -162,9 +161,82 @@ export class Help {
     this.renderPresets(b);
   }
 
-  // Populated in the content commit.
-  protected renderMaterials(_b: HTMLElement): void {}
-  protected renderTry(_b: HTMLElement): void {}
+  // ---- Section 2: Materials (descriptions reconciled against materials.ts /
+  //      reactions.ts — swatch colours are pulled live from the real config). ----
+  protected renderMaterials(b: HTMLElement): void {
+    b.appendChild(el("h2", undefined, "Materials"));
+
+    b.appendChild(el("h3", undefined, "Powders · fall and pile"));
+    b.appendChild(this.matRow(Mat.Sand,
+      "Classic powder; piles at a natural angle and sinks through water. Fuses to <b>glass</b> where it meets lava."));
+    b.appendChild(this.matRow(Mat.Salt,
+      "Fine powder that piles like sand. Acid dissolves it. (It doesn't react with water in this sim.)"));
+    b.appendChild(this.matRow(Mat.Gunpowder,
+      "Volatile powder. Ignites on contact with fire, lava, an ember or a spark, then <b>detonates</b> — clearing and scattering nearby matter and throwing fire. Chains explosively through connected gunpowder."));
+    b.appendChild(shot("powders.png", "powders piling"));
+
+    b.appendChild(el("h3", undefined, "Liquids · flow and level; density decides what floats"));
+    b.appendChild(this.matRow(Mat.Water,
+      "Flows and pools. Sinks below oil, floats on lava. <b>Conducts electricity.</b> Turns lava to <b>stone</b> (flashing to steam), douses fire, and <b>freezes to ice</b> next to something cold."));
+    b.appendChild(this.matRow(Mat.Oil,
+      "Flammable and <b>lighter than water</b>, so it floats on top. Catches fire fast and burns hot — the start of most infernos."));
+    b.appendChild(this.matRow(Mat.Lava,
+      "Molten, glowing, heavy. Ignites anything flammable, turns sand to <b>glass</b>, <b>melts metal</b>, and hardens to <b>stone</b> when it meets water."));
+    b.appendChild(this.matRow(Mat.Acid,
+      "Corrosive. Eats through stone, sand, wood, plant, salt and gunpowder, consuming itself as it dissolves. (Metal and glass resist it.)"));
+    b.appendChild(shot("liquids.png", "liquids layering by density"));
+
+    b.appendChild(el("h3", undefined, "Gases · rise and disperse"));
+    b.appendChild(this.matRow(Mat.Smoke,
+      "Rises, drifts, and thins until it fades to air. The leftover breath of fire."));
+    b.appendChild(this.matRow(Mat.Steam,
+      "Rises and <b>condenses back to water</b> as it ages. Born where water meets fire or lava."));
+    b.appendChild(this.matRow(Mat.FlammableGas,
+      "Flammable. Rises and <b>pools into pockets and cavities</b>. A single spark or flame <b>flashes the whole connected pocket into a fireball</b> — handle with care."));
+    b.appendChild(shot("gases.png", "gases pooling and rising"));
+
+    b.appendChild(el("h3", undefined, "Solids · hold their shape"));
+    b.appendChild(this.matRow(Mat.Stone,
+      "Inert structure. Doesn't move or burn. Acid eats through it; lava forms it on contact with water."));
+    b.appendChild(this.matRow(Mat.Wood,
+      "Flammable structure. Catches fire and burns away, leaving <b>ash</b>."));
+    b.appendChild(this.matRow(Mat.Metal,
+      "Rigid and <b>conducts electricity</b> — build wires and circuits. <b>Melts to molten lava</b> in extreme heat."));
+    b.appendChild(this.matRow(Mat.Ice,
+      "Frozen solid. <b>Melts to water</b> near heat and spreads a <b>freezing front</b> into adjacent water."));
+    b.appendChild(this.matRow(Mat.Glass,
+      "Transparent solid formed when <b>sand meets lava</b>. Inert and non-flammable."));
+    b.appendChild(this.matRow(Mat.Plant,
+      "<b>Grows along water</b> into empty space. Flammable — fire races through a garden."));
+    b.appendChild(shot("solids.png", "solids & structures"));
+
+    b.appendChild(el("h3", undefined, "Energy"));
+    b.appendChild(this.matRow(Mat.Fire,
+      "Needs fuel: spreads to anything flammable, then dies down to smoke (and a little ash) when there's nothing left to burn. Glows and blooms."));
+    b.appendChild(this.matRow(Mat.Spark,
+      "An electric charge. <b>Rides along water and metal</b> as a single sweeping pulse that dissipates after one pass. <b>Ignites</b> gas, oil and gunpowder on contact."));
+    b.appendChild(shot("energy.png", "fire and spark glowing"));
+  }
+
+  // ---- Section 3: Things to try ----
+  protected renderTry(b: HTMLElement): void {
+    b.appendChild(el("h2", undefined, "Things to try"));
+    const items: [string, string, string][] = [
+      ["Pour <b>Water</b> onto <b>Lava</b> → it hardens to Stone and hisses off Steam.", "try-water-lava.png", "water hitting lava → stone + steam"],
+      ["Drop <b>Fire</b> into <b>Oil</b> → a spreading inferno.", "try-oil-fire.png", "oil fire spreading"],
+      ["Run a <b>Spark</b> down a <b>Water</b> channel → watch the charge conduct.", "try-spark-water.png", "spark conducting through water"],
+      ["Fire a <b>Spark</b> into a <b>Gas</b> pocket → the whole pocket flashes over.", "try-gas-flash.png", "gas flashback fireball"],
+      ["Pour <b>Sand</b> onto <b>Lava</b> → a Glass crust forms.", "try-glass.png", "sand turning to glass"],
+      ["Drip <b>Acid</b> onto a stacked <b>Stone &amp; Sand</b> wall → it eats straight through (metal resists).", "try-acid.png", "acid dissolving a wall"],
+      ["Light a <b>Gunpowder</b> trail → chain explosions.", "try-gunpowder.png", "gunpowder chain blast"],
+      ["Set <b>Lava</b> beside <b>Ice</b> → melt, flow, and refreeze at the cold edges.", "try-ice.png", "ice melting and refreezing"],
+    ];
+    for (const [text, file, cap] of items) {
+      b.appendChild(el("p", "try-lead", text));
+      b.appendChild(shot(file, cap));
+    }
+  }
+
   protected renderPresets(_b: HTMLElement): void {}
 
   /** Small helper for content rendering: a material row with its real swatch colour. */
