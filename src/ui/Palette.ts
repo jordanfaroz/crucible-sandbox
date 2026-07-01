@@ -2,6 +2,7 @@ import type { Brush } from "../input/Brush";
 import { PALETTE_ORDER, MAT, Mat } from "../sim/materials";
 import type { PresetName } from "../sim/presets";
 import { CONFIG } from "../config";
+import { Help } from "./Help";
 
 export interface UIController {
   isPaused(): boolean;
@@ -51,6 +52,7 @@ const CSS = `
 
 export class Palette {
   private hud!: HTMLElement;
+  private help = new Help();
 
   constructor(
     private brush: Brush,
@@ -98,7 +100,8 @@ export class Palette {
     const pauseBtn = mkBtn("Pause", () => { this.ctrl.togglePause(); pauseBtn.textContent = this.ctrl.isPaused() ? "Play" : "Pause"; });
     const stepBtn = mkBtn("Step", () => this.ctrl.step());
     const clearBtn = mkBtn("Clear", () => this.ctrl.clear());
-    row1.append(pauseBtn, stepBtn, clearBtn);
+    const helpBtn = mkBtn("? Help", () => this.help.toggle());
+    row1.append(pauseBtn, stepBtn, clearBtn, helpBtn);
     ctl.appendChild(row1);
 
     const row2 = document.createElement("div");
