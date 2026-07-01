@@ -133,6 +133,9 @@ export class Palette {
     const presets: [string, PresetName][] = [
       ["Dam", "dam"], ["Oil Pit", "oilpit"], ["Lava Cave", "lavacave"], ["Garden", "garden"],
       ["Powder Keg", "powderkeg"], ["Circuit", "circuit"], ["Frost", "frost"],
+      ["Aqueduct", "aqueduct"], ["Chain Reaction", "chainreaction"], ["Foundry", "foundry"],
+      ["Glassworks", "glassworks"], ["Gas Leak", "gasleak"], ["Thaw", "thaw"],
+      ["Refinery", "refinery"], ["Acid Works", "acidworks"],
     ];
     for (const [label, name] of presets) prow.appendChild(mkBtn(label, () => this.ctrl.loadPreset(name)));
     pre.appendChild(prow);

@@ -237,7 +237,30 @@ export class Help {
     }
   }
 
-  protected renderPresets(_b: HTMLElement): void {}
+  // ---- Section 4: Presets — one line each ----
+  protected renderPresets(b: HTMLElement): void {
+    b.appendChild(el("h2", undefined, "Presets"));
+    const list: [string, string][] = [
+      ["Dam", "A reservoir of water walled above a wooden floor, with fire beneath."],
+      ["Oil Pit", "A pit of oil over water; a spark of fire drops in from above."],
+      ["Lava Cave", "A lava lake with water dripping from the ceiling — stone and steam."],
+      ["Garden", "A shallow pool with seeds that grow into a spreading garden."],
+      ["Powder Keg", "A lit fuse races across the floor into a lava-fed sand mound: chain blast + glass."],
+      ["Circuit", "A spark runs down a metal wire and flashes back a sealed gas chamber."],
+      ["Frost", "Ice freezes a pool from one side while lava melts and steams it from the other."],
+      ["Aqueduct", "A long water channel with sparks racing charges along the liquid."],
+      ["Chain Reaction", "Gunpowder caches linked by a trail — one flame sets off a cascade."],
+      ["Foundry", "Metal ingots resting in a lava basin slowly melt to molten."],
+      ["Glassworks", "Sand dunes pour onto a lava floor, forming a glass crust."],
+      ["Gas Leak", "A gas-pooled chamber and a spark fuse — a beat later, it flashes over."],
+      ["Thaw", "A cavern of ice over a lava vent: melt, flow, and refreeze at the cold walls."],
+      ["Refinery", "Oil on water under a wooden deck, lit at one end — fire, then ash."],
+      ["Acid Works", "An acid reservoir eats down through stone and sand; the metal floor resists."],
+    ];
+    for (const [name, desc] of list) {
+      b.appendChild(el("p", "try-lead", `<b>${name}</b> — ${desc}`));
+    }
+  }
 
   /** Small helper for content rendering: a material row with its real swatch colour. */
   protected matRow(id: Mat, desc: string): HTMLElement {

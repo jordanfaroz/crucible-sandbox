@@ -301,7 +301,10 @@ const w = new World();
 // piles reaching 0 is covered by the explosion / spark / ice / pool checks above.)
 {
   const total = w.chunks.count;
-  const presets: PresetName[] = ["powderkeg", "circuit", "frost"];
+  const presets: PresetName[] = [
+    "powderkeg", "circuit", "frost",
+    "aqueduct", "chainreaction", "foundry", "glassworks", "gasleak", "thaw", "refinery", "acidworks",
+  ];
   for (const name of presets) {
     loadPreset(w, name);
     w.chunks.commit();
