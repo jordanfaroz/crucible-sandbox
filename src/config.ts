@@ -50,6 +50,7 @@ export const CONFIG = {
 
   // ---- Electricity (Part B: spark) ----
   sparkCharge: 40, // charge TTL: a charge wave travels ~this many cells then dies
+  sparkEmitPeriod: 55, // frames between pulses from a periodic spark-emitter node
 } as const;
 
 export const GRID_W = CONFIG.width;

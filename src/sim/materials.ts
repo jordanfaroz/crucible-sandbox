@@ -33,6 +33,7 @@ export const enum Mat {
   Ice = 18, // cold emitter: melts to water when heated, freezes adjacent water
   Glass = 19, // formed when sand fuses on extreme heat; inert, insulating
   Ash = 20, // light powder left behind by burnt fuel
+  SparkNode = 21, // static emitter that fires a charge pulse on a timer (preset-only)
 }
 
 export interface Material {
@@ -191,6 +192,11 @@ reg(m({
 reg(m({
   id: Mat.Ash, name: "Ash", cls: Class.Powder, density: 120,
   color: [86, 84, 86], jitter: 0.22,
+}));
+
+reg(m({
+  id: Mat.SparkNode, name: "Emitter", cls: Class.Solid, density: 255,
+  color: [130, 205, 255], jitter: 0.2, emissive: true, hidden: true,
 }));
 
 export const MAT = (id: Mat): Material => MATERIALS[id];

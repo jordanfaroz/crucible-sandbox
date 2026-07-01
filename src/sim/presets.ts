@@ -102,8 +102,8 @@ export function loadPreset(w: World, name: PresetName): void {
       fillRect(w, 10, top, 13, bot, Mat.Stone);              // left wall
       fillRect(w, W - 13, top, W - 10, bot, Mat.Stone);      // right wall
       fillRect(w, 14, top + 2, W - 14, bot - 1, Mat.Water);  // water channel
-      // spark emitters just above the surface (each charge sweeps ~40 cells)
-      for (let x = 45; x < W - 40; x += 55) w.setMat(x, top + 1, Mat.Spark);
+      // periodic spark-emitter nodes spaced so pulses race along the whole channel
+      for (let x = 40; x < W - 30; x += 42) w.setMat(x, top + 2, Mat.SparkNode);
       break;
     }
     case "chainreaction": {

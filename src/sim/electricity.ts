@@ -30,8 +30,9 @@ function isWire(m: number): boolean {
 }
 
 /** Push charge into wires and ignite any fuel in the 8-neighbourhood. `q` is the
- *  TTL to deposit (already decremented for the next hop). */
-function energize(w: World, x: number, y: number, q: number): void {
+ *  TTL to deposit (already decremented for the next hop). Exported so a periodic
+ *  emitter node (see reactEmitter) can fire the same discharge on a timer. */
+export function energize(w: World, x: number, y: number, q: number): void {
   const frame = w.frame;
   for (let n = 0; n < 8; n++) {
     const nx = x + NX[n], ny = y + NY[n];

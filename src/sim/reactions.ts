@@ -6,7 +6,7 @@ import { Mat, MAT } from "./materials";
 import { chance } from "./rng";
 import { CONFIG } from "../config";
 import { explode, isDetonator } from "./explosions";
-import { chargeStep, sparkStep, flashGas } from "./electricity";
+import { chargeStep, sparkStep, flashGas, energize } from "./electricity";
 
 // 8-neighbourhood offsets.
 const NX = [-1, 0, 1, -1, 1, -1, 0, 1];
@@ -32,6 +32,7 @@ export function applyReactions(w: World, x: number, y: number, i: number): boole
     case Mat.Plant: return reactPlant(w, x, y);
     case Mat.Gunpowder: return reactGunpowder(w, x, y);
     case Mat.Ice: return reactIce(w, x, y);
+    case Mat.SparkNode: return reactEmitter(w, x, y, i);
     default: {
       const def = MAT(w.material[i]);
       return def.flammable ? tryIgnite(w, x, y, def.igniteChance) : false;
@@ -145,6 +146,20 @@ function reactDecay(w: World, x: number, y: number, i: number, into: Mat, _p: nu
   w.extra[i] = life;
   w.touch(x, y);
   return false;
+}
+
+function reactEmitter(w: World, x: number, y: number, i: number): boolean {
+  // A static node that fires a charge pulse into adjacent conductors every
+  // sparkEmitPeriod frames (extra is the countdown). Stays awake to keep its
+  // timer running — so a preset like Aqueduct shows charge racing continuously.
+  if (w.extra[i] === 0) {
+    energize(w, x, y, CONFIG.sparkCharge);
+    w.extra[i] = CONFIG.sparkEmitPeriod;
+  } else {
+    w.extra[i] = w.extra[i] - 1;
+  }
+  w.touch(x, y);
+  return true; // handled; the node never moves
 }
 
 function reactIce(w: World, x: number, y: number): boolean {
