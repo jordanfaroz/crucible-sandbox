@@ -13,31 +13,40 @@ export interface UIController {
 }
 
 const CSS = `
-#ui { position: fixed; top: 10px; left: 10px; display: flex; flex-direction: column;
-  gap: 10px; font: 12px ui-monospace, Menlo, Consolas, monospace; color: #c9d2e0;
+#ui { position: fixed; top: 10px; left: 10px; width: 254px; z-index: 20;
+  display: flex; flex-direction: column; gap: 10px;
+  font: 12px ui-monospace, Menlo, Consolas, monospace; color: #c9d2e0;
   user-select: none; }
-#ui .panel { background: rgba(12,14,22,0.82); border: 1px solid #1e2433;
-  border-radius: 8px; padding: 8px; backdrop-filter: blur(4px); }
+/* Opaque panels with an explicit stacking context so the canvas never bleeds
+   through the seam. */
+#ui .panel { background: #0b0d15; border: 1px solid #232a3a; border-radius: 8px;
+  padding: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
 #ui h2 { font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
   color: #6b7488; margin-bottom: 6px; font-weight: 600; }
-#mats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; max-width: 200px; }
+#mats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 #mats button { display: flex; align-items: center; gap: 5px; background: #171c28;
   border: 1px solid #232a3a; color: #c9d2e0; border-radius: 5px; padding: 4px 5px;
-  cursor: pointer; font: inherit; text-align: left; }
+  cursor: pointer; font: 11px ui-monospace, monospace; text-align: left; min-width: 0;
+  overflow: hidden; white-space: nowrap; }
+#mats button span.nm { overflow: hidden; text-overflow: ellipsis; }
 #mats button:hover { border-color: #3a445e; }
 #mats button.sel { border-color: #7aa2ff; box-shadow: 0 0 0 1px #7aa2ff inset; }
 #mats .sw { width: 11px; height: 11px; border-radius: 3px; flex: none;
   box-shadow: 0 0 4px rgba(255,255,255,0.08) inset; }
-#controls button { background: #171c28; border: 1px solid #232a3a; color: #c9d2e0;
-  border-radius: 5px; padding: 5px 9px; cursor: pointer; font: inherit; margin: 2px; }
-#controls button:hover { border-color: #3a445e; }
-#controls .row { display: flex; flex-wrap: wrap; align-items: center; }
+/* Shared chip styling for control + preset buttons — discrete, separated, wrapping. */
+#controls .row, #presets .row { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+#controls button, #presets button { background: #171c28; border: 1px solid #232a3a;
+  color: #c9d2e0; border-radius: 5px; padding: 5px 9px; cursor: pointer; font: inherit; }
+#controls button:hover, #presets button:hover { border-color: #3a445e; background: #1c2230; }
+#controls button:active, #presets button:active { background: #232c40; }
 #controls label { display: flex; align-items: center; gap: 6px; margin: 4px 2px; }
-#hud { position: fixed; bottom: 10px; left: 10px; font: 11px ui-monospace, monospace;
-  color: #5f6b82; background: rgba(12,14,22,0.7); padding: 5px 8px; border-radius: 6px;
-  border: 1px solid #1e2433; }
-#hint { position: fixed; bottom: 10px; right: 10px; font: 11px ui-monospace, monospace;
-  color: #4a5266; text-align: right; line-height: 1.5; }
+#hud { position: fixed; bottom: 10px; left: 10px; z-index: 20;
+  font: 11px ui-monospace, monospace; color: #8b94a8; background: #0b0d15e6;
+  padding: 5px 8px; border-radius: 6px; border: 1px solid #232a3a;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+#hint { position: fixed; bottom: 10px; right: 10px; z-index: 20;
+  font: 11px ui-monospace, monospace; color: #5b6478;
+  text-align: right; line-height: 1.5; text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
 `;
 
 export class Palette {
@@ -69,8 +78,9 @@ export class Palette {
       const m = MAT(id);
       const btn = document.createElement("button");
       btn.dataset.mat = String(id);
+      btn.title = m.name;
       const [r, g, b] = m.color;
-      btn.innerHTML = `<span class="sw" style="background:rgb(${r},${g},${b})"></span>${m.name}`;
+      btn.innerHTML = `<span class="sw" style="background:rgb(${r},${g},${b})"></span><span class="nm">${m.name}</span>`;
       btn.onclick = () => this.select(id);
       grid.appendChild(btn);
     }
@@ -113,6 +123,7 @@ export class Palette {
     // --- presets ---
     const pre = document.createElement("div");
     pre.className = "panel";
+    pre.id = "presets";
     pre.innerHTML = `<h2>Presets</h2>`;
     const prow = document.createElement("div");
     prow.className = "row";
