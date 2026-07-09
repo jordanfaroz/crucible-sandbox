@@ -40,7 +40,7 @@ export const CONFIG = {
   // nothing and a settled/asleep source pushes nothing (settle-to-zero preserved).
   phase: {
     sandToGlass: 0.06, // chance/frame a sand cell touching lava fuses to glass
-    metalMelt: 0.02, // chance/frame a metal cell touching lava melts to lava
+    metalMelt: 0.12, // chance/frame a metal cell touching lava melts to lava
     iceMelt: 0.12, // chance/frame an ice cell touching fire/lava melts to water
     waterFreeze: 0.10, // chance/frame a water cell touching ice freezes (slow front)
   },
